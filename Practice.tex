@@ -1,0 +1,84 @@
+\documentclass{article}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{amsmath}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=C++,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+\title{Practice Breaking down of QRSdet algorithm}
+\author{Lukas Kohlhase}
+\begin{document}
+\maketitle
+We will look at the individual sub functions, and then the main one 
+\section{Filters}
+The main filter function: 
+\begin{lstlisting}
+int QRSFilter(int datum,int init)
+	{
+	int fdatum ;
+
+	if(init)
+		{
+		hpfilt( 0, 1 ) ;		// Initialize filters.
+		lpfilt( 0, 1 ) ;
+		mvwint( 0, 1 ) ;
+		deriv1( 0, 1 ) ;
+		deriv2( 0, 1 ) ;
+		}
+
+	fdatum = lpfilt( datum, 0 ) ;		// Low pass filter data.
+	fdatum = hpfilt( fdatum, 0 ) ;	// High pass filter data.
+	fdatum = deriv2( fdatum, 0 ) ;	// Take the derivative.
+	fdatum = abs(fdatum) ;				// Take the absolute value.
+	fdatum = mvwint( fdatum, 0 ) ;	// Average over an 80 ms window .
+	return(fdatum) ;
+	}
+\end{lstlisting}
+Basically just takes the separate ones listing functions
+\subsection{lpfilt}
+A low pass filter based on the equation $y[n] = 2*y[n-1] - y[n-2] + x[n] - 2*x[t-24 ms] + x[t-48 ms]$. \\ 
+Two additions for bookkeeping purposes. 
+
+Main equation is two left shifts and three additions.
+\subsection{hpfilt}
+A high pass filter based on the equations
+\begin{align*}
+	y[n] &= y[n-1] + x[n] - x[n-128 ms] \\
+  z[n] &= x[n-64 ms] - y[n] ;
+\end{align*}
+Two additions for bookkeeping purposes 
+
+Main two equations are three additions and one division.
+
+\subsection{deriv1}
+It's the easy way to do derivation, just $x[n]-x[n-10ms]$, so we have just on addition. Deriv2 is the same way
+\subsection{mvwint}
+Just averaging over a moving window. 
+
+One addition for administrative stuff, 2 for averaging and one division
+
+\subsection{In total}
+Twelve additions, two left shifts and two divisions
+\section{Main Algorithm}
+We will first do the subalgorithms, and then the main algorithm 
+\subsection{Peak}
+It has one addition, a bunch of comparisons and variable reassignments.
+\end{document}
