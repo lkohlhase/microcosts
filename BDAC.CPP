@@ -1,5 +1,14 @@
 /*****************************************************************************
-FILE:  bdac.cppAUTHOR:	Patrick S. HamiltonREVISED:	5/13/2002  ___________________________________________________________________________bdac.cpp: Beat Detection And ClassificationCopywrite (C) 2001 Patrick S. HamiltonThis file is free software; you can redistribute it and/or modify it underthe terms of the GNU Library General Public License as published by the Free
+FILE:  bdac.cpp
+AUTHOR:	Patrick S. Hamilton
+REVISED:	5/13/2002
+  ___________________________________________________________________________
+
+bdac.cpp: Beat Detection And Classification
+Copywrite (C) 2001 Patrick S. Hamilton
+
+This file is free software; you can redistribute it and/or modify it under
+the terms of the GNU Library General Public License as published by the Free
 Software Foundation; either version 2 of the License, or (at your option) any
 later version.
 
@@ -96,7 +105,25 @@ void ResetBDAC(void)
 
 /*****************************************************************************
 Syntax:
-	int BeatDetectAndClassify(int ecgSample, int *beatType, *beatMatch) ;Description:	BeatDetectAndClassify() implements a beat detector and classifier.	ECG samples are passed into BeatDetectAndClassify() one sample at a	time.  BeatDetectAndClassify has been designed for a sample rate of	200 Hz.  When a beat has been detected and classified the detection	delay is returned and the beat classification is returned through the	pointer *beatType.  For use in debugging, the number of the template   that the beat was matched to is returned in via *beatMatch.Returns	BeatDetectAndClassify() returns 0 if no new beat has been detected and	classified.  If a beat has been classified, BeatDetectAndClassify returns	the number of samples since the approximate location of the R-wave.****************************************************************************/int BeatDetectAndClassify(int ecgSample, int *beatType, int *beatMatch)
+	int BeatDetectAndClassify(int ecgSample, int *beatType, *beatMatch) ;
+
+Description:
+	BeatDetectAndClassify() implements a beat detector and classifier.
+	ECG samples are passed into BeatDetectAndClassify() one sample at a
+	time.  BeatDetectAndClassify has been designed for a sample rate of
+	200 Hz.  When a beat has been detected and classified the detection
+	delay is returned and the beat classification is returned through the
+	pointer *beatType.  For use in debugging, the number of the template
+   that the beat was matched to is returned in via *beatMatch.
+
+Returns
+	BeatDetectAndClassify() returns 0 if no new beat has been detected and
+	classified.  If a beat has been classified, BeatDetectAndClassify returns
+	the number of samples since the approximate location of the R-wave.
+
+****************************************************************************/
+
+int BeatDetectAndClassify(int ecgSample, int *beatType, int *beatMatch)
 	{
 	int detectDelay, rr, i, j ;
 	int noiseEst = 0, beatBegin, beatEnd ;
@@ -184,7 +211,18 @@ Syntax:
 	// Skip the first beat.
 
 	if(InitBeatFlag)
-		{		InitBeatFlag = 0 ;		*beatType = 13 ;		*beatMatch = 0 ;		fidAdj = 0 ;		}	// Classify all other beats.	else		{		*beatType = Classify(BeatBuffer,rr,noiseEst,beatMatch,&fidAdj,0) ;
+		{
+		InitBeatFlag = 0 ;
+		*beatType = 13 ;
+		*beatMatch = 0 ;
+		fidAdj = 0 ;
+		}
+
+	// Classify all other beats.
+
+	else
+		{
+		*beatType = Classify(BeatBuffer,rr,noiseEst,beatMatch,&fidAdj,0) ;
 		fidAdj *= SAMPLE_RATE/BEAT_SAMPLE_RATE ;
       }
 

@@ -1,0 +1,85 @@
+/*
+ ============================================================================
+ Name        : rrdet.c
+ Author      : thoerman
+ Version     : 0.1
+ Copyright   : Most of this code was copied from Eli Billauer's
+               peak detection algorithm for MATLAB
+               (http://billauer.co.il/peakdet.html).
+ Description : I have adjusted the code for the need's of peak detection
+               (maximum only) on a µC, for a given signal.
+ ============================================================================
+ */
+
+#include <msp430FG4619.h>
+#include <legacymsp430.h>
+#include <stdio.h>
+#include "rrdet.h"
+#include "./system/time.h"
+
+#define RR_PEK_MAX 4096
+#define RR_PEK_MIN 0
+#define RR_DELTA 200
+
+// 1 if minimum was detected (max is to come) and 0 if max was detected (min it to come)
+unsigned int pek_is_detecting_max = 1;
+// initial minimum value
+unsigned int pek_maximum = RR_PEK_MIN;
+// initial maximum value
+unsigned int pek_minimum = RR_PEK_MAX;
+unsigned long pek_mx_time = 0;
+
+unsigned long rrdet_getPeaktTime(){
+  return pek_mx_time;
+}
+
+int rrdet_peak_max(int sensVal) {
+
+  // we are searching for a maximum
+  if(pek_is_detecting_max){
+    // actual value is greater then old maximum thus we hav not found a peak yet
+    if(sensVal > pek_maximum){
+      pek_maximum = sensVal;
+      // TODO get time
+      pek_mx_time = time_getRTC();;
+    // otherwise we need to check if the value differs more then the given delta
+    } else if(sensVal < pek_maximum - RR_DELTA){
+        // maximum found!
+        pek_is_detecting_max = 0;
+        // reset maximum
+        pek_maximum = RR_PEK_MIN;
+        return sensVal;
+    }
+  // we need to pass next minimum before we start searching for a maximum again
+  } else {
+    // actual value is less then old minimum thus we hav not found a peak yet
+    if(sensVal < pek_minimum){
+      pek_minimum = sensVal;
+    // otherwise we need to check if the value differs more then the given delta
+    } else if(sensVal > pek_minimum - RR_DELTA){
+        // minimum found!
+        pek_is_detecting_max = 1;
+        // reset minimum
+        pek_minimum = RR_PEK_MAX;
+        // do not report because we are interested in maximum only
+        return 0;
+    }
+  }
+  return 0;
+}
+
+//int main(void) {
+//  int i;
+//  for (i = 0; i < 10000; i++){
+//
+//    int value =  (int) ((sin((double) i/100)+1)*2048);
+//    int peak = det_peak_max(value, 50, i);
+//    if (peak){
+//      printf("PEAK: %d\n", pek_mx_time);
+//    }
+//    //printf("%d\n", value);
+//
+//  }
+//  return EXIT_SUCCESS;
+//}
+
