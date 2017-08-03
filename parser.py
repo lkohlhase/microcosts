@@ -15,6 +15,8 @@ import pickle
 #don't put any function stuff directly at the end of a file. Can lead to errors when we're checking if it's a prototype or not. TODO potentially fix this or decide to just document it. I think I fixed it, will have to check htough I guess
 #No nested switch case at all.
 
+dangerous=['for (', 'if (', 'while (', 'do', 'switch (']
+
 class Parser:
     def __init__(self,filename,from_file=False):
         '''
@@ -225,6 +227,9 @@ class Parser:
                                 if ('else' not in functionlist[iterator]):
                                     notdone=False
                         else:
+                            if True in [x in functionlist[iterator] for x in dangerous]:
+                                print('Expected a simple one line clause in this line. ')
+                                print(functionlist[iterator])
                             scope=functionlist[iterator] #This is the next line
                             functionlist[iterator]='' #Remove the line so it doesn't get double counted
                             if ('else' not in functionlist[iterator+1]):
@@ -276,6 +281,9 @@ class Parser:
                 body=[]
                 iterator=y+1 #This is the line where we expect a brace
                 if ("{" not in functionlist[iterator]): #The body of the for loop is only one line long
+                    if True in [x in functionlist[iterator] for x in dangerous]:
+                        print('Expected a simple one line clause in this line. ')
+                        print(functionlist[iterator])
                     body.append(functionlist[iterator])
                     functionlist[iterator]=""
                 else:
@@ -321,6 +329,9 @@ class Parser:
                 if ('{' not in functionlist[iterator]):
                     body.append(functionlist[iterator])
                     functionlist[iterator]=""
+                    if True in [x in functionlist[iterator] for x in dangerous]:
+                        print('Expected a simple one line clause in this line. ')
+                        print(functionlist[iterator])
                 else:
                     bracecounter=1
                     iterator+=1
